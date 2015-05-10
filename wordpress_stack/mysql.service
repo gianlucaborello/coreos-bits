@@ -1,0 +1,13 @@
+[Unit]
+Description=mysql
+After=docker.service
+Requires=mysql.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill mysql
+ExecStartPre=-/usr/bin/docker rm -v mysql
+ExecStartPre=/usr/bin/docker pull mysql
+ExecStart=/usr/bin/docker run --name mysql -e MYSQL_ROOT_PASSWORD=mysecretpassword mysql
+ExecStop=/usr/bin/docker stop mysql
+

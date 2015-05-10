@@ -1,0 +1,16 @@
+[Unit]
+Description=haproxy-confd
+After=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=/usr/bin/etcdctl mkdir /haproxy-discover/tcp-services
+ExecStartPre=-/usr/bin/docker kill haproxy-confd
+ExecStartPre=-/usr/bin/docker rm -v haproxy-confd
+ExecStartPre=/usr/bin/docker pull yaronr/haproxy-confd
+ExecStart=/usr/bin/docker run --net=host -e ETCD_NODE=127.0.0.1:4001 --name haproxy-confd yaronr/haproxy-confd
+ExecStop=/usr/bin/docker stop haproxy-confd
+ExecStop=/usr/bin/etcdctl rmdir /haproxy-discover/tcp-services
+
+[X-Fleet]
+MachineMetadata="role=balancer"

@@ -1,0 +1,17 @@
+[Unit]
+Description=frontend%i
+After=docker.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill frontend%i
+ExecStartPre=-/usr/bin/docker rm -v frontend%i
+ExecStartPre=/usr/bin/docker pull nginx
+ExecStart=/usr/bin/docker run --name frontend%i nginx
+ExecStartPost=/bin/sh -c "sleep 2 && etcdctl set /haproxy-discover/services/myapp/upstreams/frontend%i $(docker inspect --format '{{ .NetworkSettings.IPAddress }}' frontend%i):80"
+ExecStartPost=/usr/bin/etcdctl set /haproxy-discover/services/myapp/domain myapp.org
+ExecStop=/usr/bin/etcdctl rm /haproxy-discover/services/myapp/upstreams/frontend%i
+ExecStop=/usr/bin/docker stop frontend%i
+
+[X-Fleet]
+MachineMetadata="role=frontend"

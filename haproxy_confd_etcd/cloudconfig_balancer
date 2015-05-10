@@ -1,0 +1,22 @@
+#cloud-config
+
+hostname: balancer
+coreos:
+  fleet:
+    metadata: role=balancer
+  etcd:
+    discovery: https://discovery.etcd.io/TOKEN
+    addr: $private_ipv4:4001
+    peer-addr: $private_ipv4:7001
+  units:
+    - name: flanneld.service
+      drop-ins:
+        - name: 50-network-config.conf
+          content: |
+            [Service]
+            ExecStartPre=/usr/bin/etcdctl set /coreos.com/network/config '{ "Network": "192.168.0.0/16" }'
+      command: start
+    - name: etcd.service
+      command: start
+    - name: fleet.service
+      command: start

@@ -1,0 +1,13 @@
+[Unit]
+Description=wordpress%i
+After=docker.service
+Requires=mysql.service
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill wordpress%i
+ExecStartPre=-/usr/bin/docker rm -v wordpress%i
+ExecStartPre=/usr/bin/docker pull wordpress
+ExecStart=/usr/bin/docker run --name wordpress%i --link mysql:mysql wordpress
+ExecStartPost=/usr/bin/bash -c "/usr/bin/sleep 5 && /usr/bin/docker exec wordpress%i sed -i s/CustomLog.*/\"CustomLog \/var\/log\/apache2\/access.log combined\"/ /etc/apache2/apache2.conf"
+ExecStop=/usr/bin/docker stop wordpress%i
